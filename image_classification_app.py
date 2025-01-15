@@ -12,9 +12,46 @@ import matplotlib.pyplot as plt
 
 # --- Étape 1 : Prétraitement et Modélisation des Données (Graphes Dynamiques) ---
 st.title("Application de Classification sur des Graphes Dynamiques")
-st.write("Cette application permet de charger des données, de modéliser un graphe dynamique, et de classifier automatiquement les objets.")
+st.write("Bienvenue dans l'application de classification d'images et de graphes dynamiques. Chargez vos données et laissez l'algorithme classifier automatiquement les objets.")
 
-# Création d'un graphe orienté
+# --- Chargement des Images ---
+st.sidebar.title("Chargement des Images")
+uploaded_files = st.sidebar.file_uploader("Chargez une ou plusieurs images (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
+
+if uploaded_files:
+    st.write("### Images Chargées")
+    images = []
+    for file in uploaded_files:
+        img = Image.open(file)
+        images.append(img)
+        st.image(img, caption=file.name, use_column_width=True)
+
+    # --- Prétraitement des Images ---
+    st.write("### Prétraitement des Images")
+    features = [np.array(img.resize((100, 100))).flatten() for img in images]
+    features = np.array(features)
+
+    # --- Classification avec K-Moyennes ---
+    st.write("### Classification avec K-Moyennes")
+    kmeans = KMeans(n_clusters=2)
+    labels = kmeans.fit_predict(features)
+    for i, label in enumerate(labels):
+        st.write(f"Image {i+1} - Classe {label}")
+
+    # --- Réduction de Dimension avec PCA ---
+    st.write("### Visualisation des Classes avec PCA")
+    pca = PCA(n_components=2)
+    reduced_features = pca.fit_transform(features)
+
+    fig, ax = plt.subplots()
+    ax.scatter(reduced_features[:, 0], reduced_features[:, 1], c=labels, cmap='viridis')
+    ax.set_title("Projection PCA des Images Classifiées")
+    st.pyplot(fig)
+
+else:
+    st.sidebar.info("Veuillez charger au moins une image pour commencer.")
+
+# --- Étape 2 : Création et Visualisation du Graphe Dynamique ---
 G = nx.DiGraph()
 G.add_edge("A", "B", weight=2)
 G.add_edge("A", "C", weight=3)
@@ -22,18 +59,17 @@ G.add_edge("B", "D", weight=4)
 G.add_edge("C", "D", weight=1)
 G.add_edge("D", "E", weight=5)
 
-# Visualisation du graphe
 st.write("### Graphe Dynamique")
 fig, ax = plt.subplots()
 nx.draw(G, with_labels=True, ax=ax)
 st.pyplot(fig)
 
-# --- Étape 2 : Algorithme Dynamique de Plus Courts Chemins ---
+# --- Calcul des Plus Courts Chemins ---
 st.write("### Calcul des Plus Courts Chemins")
 shortest_paths = dict(nx.all_pairs_dijkstra_path_length(G))
 st.write("Chemins calculés :", shortest_paths)
 
-# --- Étape 3 : Extraction des Caractéristiques des Nœuds ---
+# --- Extraction des Caractéristiques des Nœuds ---
 def calculate_node_features(graph):
     centrality = nx.degree_centrality(graph)
     clustering = nx.clustering(graph)
@@ -44,43 +80,23 @@ st.write("### Caractéristiques des Nœuds")
 st.write("Centralité :", centrality)
 st.write("Clustering :", clustering)
 
-# --- Étape 4 : Classification avec Différents Algorithmes ---
-# Simulation de données de classification
-X = np.array([[centrality[node], clustering[node]] for node in G.nodes()])
-y = np.array([0, 1, 1, 0, 1])  # Labels fictifs
-
-# K-Moyennes
-st.write("### Classification avec K-Moyennes")
-kmeans = KMeans(n_clusters=2)
-labels_kmeans = kmeans.fit_predict(X)
-st.write("Labels prédits :", labels_kmeans)
-
-# Naive Bayes
+# --- Classification avec Naive Bayes ---
 st.write("### Classification avec Naive Bayes")
+y = np.array([0, 1, 1, 0, 1])  # Labels fictifs
 nb = GaussianNB()
-nb.fit(X, y)
-pred_nb = nb.predict(X)
+nb.fit(features, y)
+pred_nb = nb.predict(features)
 st.write("Prédictions :", pred_nb)
 st.write("Précision :", accuracy_score(y, pred_nb))
 st.write("Score F1 :", f1_score(y, pred_nb))
 
-# Réseau de Neurones
+# --- Classification avec Réseau de Neurones ---
 st.write("### Classification avec Réseau de Neurones")
 mlp = MLPClassifier(hidden_layer_sizes=(10, 10), max_iter=1000)
-mlp.fit(X, y)
-pred_mlp = mlp.predict(X)
+mlp.fit(features, y)
+pred_mlp = mlp.predict(features)
 st.write("Prédictions :", pred_mlp)
 st.write("Précision :", accuracy_score(y, pred_mlp))
 st.write("Score F1 :", f1_score(y, pred_mlp))
-
-# --- Étape 5 : Visualisation avec PCA ---
-st.write("### Réduction de Dimension avec PCA")
-pca = PCA(n_components=2)
-reduced_X = pca.fit_transform(X)
-
-fig2, ax2 = plt.subplots()
-ax2.scatter(reduced_X[:, 0], reduced_X[:, 1], c=y, cmap='viridis')
-ax2.set_title("Projection PCA des Nœuds Classifiés")
-st.pyplot(fig2)
 
 st.write("Merci d'avoir utilisé cette application !")
