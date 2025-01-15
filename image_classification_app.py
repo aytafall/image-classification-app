@@ -31,7 +31,7 @@ if uploaded_files:
         _, img_binary = cv2.threshold(img_np, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
         images.append(img_binary)
-        st.image(img_binary, caption=f"Image prétraitée - {file.name}", use_column_width=True, channels="GRAY")
+        st.image(img_binary, caption=f"Image prétraitée - {file.name}", use_container_width=True, channels="GRAY")
 
     # --- Prétraitement des Images ---
     st.write("### Prétraitement des Images")
@@ -45,7 +45,8 @@ if uploaded_files:
 
         # --- Classification avec K-Moyennes ---
         st.write("### Classification avec K-Moyennes")
-        kmeans = KMeans(n_clusters=2)
+        n_clusters = min(len(features), 2)  # Ajuster dynamiquement le nombre de clusters
+        kmeans = KMeans(n_clusters=n_clusters)
         labels = kmeans.fit_predict(features)
         for i, label in enumerate(labels):
             st.write(f"Image {i+1} - Classe {label}")
