@@ -62,8 +62,14 @@ if uploaded_files:
         reduced_features = pca.fit_transform(features)
 
         fig, ax = plt.subplots()
-        ax.scatter(reduced_features[:, 0], reduced_features[:, 1], c=labels, cmap='viridis')
-        ax.set_title("Projection PCA des Images Classifiées")
+        if n_components == 2:
+            ax.scatter(reduced_features[:, 0], reduced_features[:, 1], c=labels, cmap='viridis')
+            ax.set_title("Projection PCA des Images Classifiées (2D)")
+            st.write("Cette visualisation montre les images projetées dans un espace à deux dimensions après une réduction PCA. Chaque point représente une image classifiée en fonction de ses caractéristiques principales.")
+        elif n_components == 1:
+            ax.scatter(reduced_features[:, 0], np.zeros_like(reduced_features[:, 0]), c=labels, cmap='viridis')
+            ax.set_title("Projection PCA des Images Classifiées (1D)")
+            st.write("Cette visualisation montre les images projetées sur une seule dimension après une réduction PCA. Chaque point correspond à une image classifiée en fonction de sa caractéristique principale.")
         st.pyplot(fig)
 
         # --- Classification avec Naive Bayes ---
@@ -73,7 +79,9 @@ if uploaded_files:
         pred_nb = nb.predict(features)
         st.write("Prédictions :", pred_nb)
         st.write("Précision :", accuracy_score(y, pred_nb))
+        st.write("La précision indique le pourcentage d'images correctement classifiées parmi toutes les images traitées.")
         st.write("Score F1 :", f1_score(y, pred_nb))
+        st.write("Le score F1 est une moyenne harmonique entre la précision et le rappel, utile pour évaluer les performances du modèle.")
 
         # --- Classification avec Réseau de Neurones ---
         st.write("### Classification avec Réseau de Neurones")
@@ -82,7 +90,9 @@ if uploaded_files:
         pred_mlp = mlp.predict(features)
         st.write("Prédictions :", pred_mlp)
         st.write("Précision :", accuracy_score(y, pred_mlp))
+        st.write("La précision indique le pourcentage d'images correctement classifiées par le réseau de neurones.")
         st.write("Score F1 :", f1_score(y, pred_mlp))
+        st.write("Le score F1 fournit une mesure équilibrée des performances du réseau de neurones, en tenant compte à la fois de la précision et du rappel.")
     else:
         st.error("Les données sont invalides ou vides. Veuillez charger des images valides.")
 else:
@@ -115,6 +125,8 @@ def calculate_node_features(graph):
 centrality, clustering = calculate_node_features(G)
 st.write("### Caractéristiques des Nœuds")
 st.write("Centralité :", centrality)
+st.write("La centralité mesure l'importance d'un nœud dans le graphe, en fonction du nombre de connexions qu'il a avec d'autres nœuds.")
 st.write("Clustering :", clustering)
+st.write("Le coefficient de clustering mesure la probabilité que les voisins d'un nœud soient également connectés entre eux, indiquant des structures en triangle dans le graphe.")
 
 st.write("Merci d'avoir utilisé cette application !")
