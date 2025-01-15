@@ -23,15 +23,19 @@ if uploaded_files:
     st.write("### Images Chargées")
     images = []
     for file in uploaded_files:
-        img = Image.open(file)
-        img_gray = ImageOps.grayscale(img)  # Conversion en niveaux de gris
-        img_np = np.array(img_gray)  # Conversion en tableau numpy
+        try:
+            img = Image.open(file).convert("RGB")
+            img_gray = ImageOps.grayscale(img)  # Conversion en niveaux de gris
+            img_np = np.array(img_gray)  # Conversion en tableau numpy
 
-        # Prétraitement : binarisation
-        _, img_binary = cv2.threshold(img_np, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+            # Prétraitement : redimensionnement et binarisation
+            img_resized = cv2.resize(img_np, (100, 100), interpolation=cv2.INTER_AREA)
+            _, img_binary = cv2.threshold(img_resized, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-        images.append(img_binary)
-        st.image(img_binary, caption=f"Image prétraitée - {file.name}", use_container_width=True, channels="GRAY")
+            images.append(img_binary)
+            st.image(img_binary, caption=f"Image prétraitée - {file.name}", use_container_width=True, channels="GRAY")
+        except Exception as e:
+            st.error(f"Erreur lors du traitement de l'image {file.name}: {str(e)}")
 
     # --- Prétraitement des Images ---
     st.write("### Prétraitement des Images")
@@ -53,7 +57,8 @@ if uploaded_files:
 
         # --- Réduction de Dimension avec PCA ---
         st.write("### Visualisation des Classes avec PCA")
-        pca = PCA(n_components=2)
+        n_components = min(len(features), len(features[0]), 2)  # Ajuster le nombre de composants
+        pca = PCA(n_components=n_components)
         reduced_features = pca.fit_transform(features)
 
         fig, ax = plt.subplots()
