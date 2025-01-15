@@ -31,6 +31,9 @@ if uploaded_files:
     features = [np.array(img.resize((100, 100))).flatten() for img in images]
     features = np.array(features)
 
+    # Générer dynamiquement les étiquettes fictives
+    y = np.random.randint(0, 2, size=len(features))  # Deux classes : 0 ou 1
+
     # --- Classification avec K-Moyennes ---
     st.write("### Classification avec K-Moyennes")
     kmeans = KMeans(n_clusters=2)
@@ -47,6 +50,24 @@ if uploaded_files:
     ax.scatter(reduced_features[:, 0], reduced_features[:, 1], c=labels, cmap='viridis')
     ax.set_title("Projection PCA des Images Classifiées")
     st.pyplot(fig)
+
+    # --- Classification avec Naive Bayes ---
+    st.write("### Classification avec Naive Bayes")
+    nb = GaussianNB()
+    nb.fit(features, y)
+    pred_nb = nb.predict(features)
+    st.write("Prédictions :", pred_nb)
+    st.write("Précision :", accuracy_score(y, pred_nb))
+    st.write("Score F1 :", f1_score(y, pred_nb))
+
+    # --- Classification avec Réseau de Neurones ---
+    st.write("### Classification avec Réseau de Neurones")
+    mlp = MLPClassifier(hidden_layer_sizes=(10, 10), max_iter=1000)
+    mlp.fit(features, y)
+    pred_mlp = mlp.predict(features)
+    st.write("Prédictions :", pred_mlp)
+    st.write("Précision :", accuracy_score(y, pred_mlp))
+    st.write("Score F1 :", f1_score(y, pred_mlp))
 
 else:
     st.sidebar.info("Veuillez charger au moins une image pour commencer.")
@@ -79,24 +100,5 @@ centrality, clustering = calculate_node_features(G)
 st.write("### Caractéristiques des Nœuds")
 st.write("Centralité :", centrality)
 st.write("Clustering :", clustering)
-
-# --- Classification avec Naive Bayes ---
-st.write("### Classification avec Naive Bayes")
-y = np.array([0, 1, 1, 0, 1])  # Labels fictifs
-nb = GaussianNB()
-nb.fit(features, y)
-pred_nb = nb.predict(features)
-st.write("Prédictions :", pred_nb)
-st.write("Précision :", accuracy_score(y, pred_nb))
-st.write("Score F1 :", f1_score(y, pred_nb))
-
-# --- Classification avec Réseau de Neurones ---
-st.write("### Classification avec Réseau de Neurones")
-mlp = MLPClassifier(hidden_layer_sizes=(10, 10), max_iter=1000)
-mlp.fit(features, y)
-pred_mlp = mlp.predict(features)
-st.write("Prédictions :", pred_mlp)
-st.write("Précision :", accuracy_score(y, pred_mlp))
-st.write("Score F1 :", f1_score(y, pred_mlp))
 
 st.write("Merci d'avoir utilisé cette application !")
