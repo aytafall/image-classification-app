@@ -5,7 +5,8 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
-from PIL import Image
+from PIL import Image, ImageOps
+import cv2
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,12 +24,18 @@ if uploaded_files:
     images = []
     for file in uploaded_files:
         img = Image.open(file)
-        images.append(img)
-        st.image(img, caption=file.name, use_column_width=True)
+        img_gray = ImageOps.grayscale(img)  # Conversion en niveaux de gris
+        img_np = np.array(img_gray)  # Conversion en tableau numpy
+
+        # Prétraitement : binarisation
+        _, img_binary = cv2.threshold(img_np, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+        images.append(img_binary)
+        st.image(img_binary, caption=f"Image prétraitée - {file.name}", use_column_width=True, channels="GRAY")
 
     # --- Prétraitement des Images ---
     st.write("### Prétraitement des Images")
-    features = [np.array(img.resize((100, 100))).flatten() for img in images]
+    features = [img.flatten() for img in images]
     features = np.array(features)
 
     # Vérifier que les données sont valides
